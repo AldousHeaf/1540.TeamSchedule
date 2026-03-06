@@ -3,6 +3,7 @@ module.exports = {
   'Mech Pit': { min: 2, max: 2 },
   'Ctrls Pit': { min: 1, max: 1 },
   'Pit Lead': { min: 2, max: 2 },
+  'Pits': { min: 3, max: 3 },
   Journalist: { min: 0, max: 1 },
   Strategy: { min: 3, max: 3 },
   Media: { min: 0, max: 1 },

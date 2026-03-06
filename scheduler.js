@@ -1,12 +1,13 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Journalist', 'Strategy', 'Media'];
+const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Pits', 'Journalist', 'Strategy', 'Media'];
 const PIT_LEAD_NAMES = ['Audrey Tsai', 'Zachary Rutman']; // Both Pit Lead all day (not Mech Pit)
+const PITS_ONLY_NAMES = ['Brian Chai', 'James Rubenstein', 'Maddox Gumboc']; // Only in "Pits" role, not Mech/Ctrls
 const SCOUT_START_MINUTES = 11 * 60; // Scouting starts at 11:00
 const CANNOT_SCOUT_NAMES = [];
-const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai'];
-const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
+const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc'];
+const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
 const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
 const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa'];
@@ -60,7 +61,7 @@ function evaluateGoodness(people, submissions) {
     score += totalScoutBlocks * 2;
   }
 
-  const balanceRoles = ['Strategy', 'Media', 'Journalist', 'Mech Pit', 'Ctrls Pit', 'Pit Lead'];
+  const balanceRoles = ['Strategy', 'Media', 'Journalist', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Pits'];
   balanceRoles.forEach((role) => {
     const counts = people
       .map((p) => (p.schedule || []).filter((r) => r === role).length)
@@ -334,6 +335,17 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       if (person) {
         person.schedule[timeIdx] = 'Pit Lead';
         pitLeadsAssigned++;
+      }
+    }
+
+    const pitsMax = Math.max(0, getMax('Pits', timeIdx));
+    let pitsAssigned = 0;
+    for (const name of PITS_ONLY_NAMES) {
+      if (pitsAssigned >= pitsMax) break;
+      const person = people.find((p) => p.name === name && p.schedule[timeIdx] === 'Open');
+      if (person) {
+        person.schedule[timeIdx] = 'Pits';
+        pitsAssigned++;
       }
     }
 
