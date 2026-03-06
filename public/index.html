@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1540 Schedule</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="loadingScreen" class="loading-screen" aria-live="polite">
+        <div class="loading-screen-bg"></div>
+        <div class="loading-screen-content">
+            <div class="loading-screen-logo">1540</div>
+            <h2 class="loading-screen-title">Building your schedule</h2>
+            <p class="loading-screen-sub">Running trials to find the best balance</p>
+            <div class="loading-screen-bar">
+                <div class="loading-screen-bar-fill"></div>
+            </div>
+            <div class="loading-screen-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-inner">
+            <h1>1540</h1>
+            <span>Schedule</span>
+            <input type="search" id="searchInput" class="search-input" placeholder="Search by name…" aria-label="Search by name">
+            <button type="button" id="regenerateBtn" class="regenerate-btn">Regenerate</button>
+        </div>
+    </header>
+
+    <div id="rolePanel" class="role-panel hidden" aria-hidden="true">
+        <div class="role-panel-inner">
+            <button type="button" class="role-panel-close" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <div class="role-panel-header">
+                <h2 id="rolePanelTitle" class="role-panel-title"></h2>
+            </div>
+            <div id="rolePanelBody" class="role-panel-body"></div>
+        </div>
+    </div>
+
+    <main class="main">
+        <div id="scheduleContainer" class="schedule-wrap"></div>
+    </main>
+
+    <script src="schedule.js"></script>
+</body>
+</html>

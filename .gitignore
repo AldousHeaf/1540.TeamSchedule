@@ -1,0 +1,19 @@
+# Dependencies (reinstall with npm install)
+node_modules/
+
+# Generated/cached data (schedule is built on server start)
+data.json
+
+# Environment / secrets (if you add any later)
+.env
+.env.local
+.env.*.local
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log
+.cursor/
+
+# Optional: ignore CSV if it has real emails (use a sample for public repo)
+# responses.csv

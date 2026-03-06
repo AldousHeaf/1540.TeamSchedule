@@ -1,0 +1,12 @@
+{
+  "name": "competition-schedule-organizer",
+  "version": "1.0.0",
+  "description": "FRC Team 1540 Competition Schedule Organizer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
