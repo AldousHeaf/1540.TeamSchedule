@@ -1,15 +1,14 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Pits', 'Journalist', 'Strategy', 'Media'];
-const PIT_LEAD_NAMES = ['Audrey Tsai', 'Zachary Rutman']; // Both Pit Lead all day (not Mech Pit)
-const PITS_ONLY_NAMES = ['Brian Chai', 'James Rubenstein', 'Maddox Gumboc']; // Only in "Pits" role, not Mech/Ctrls
+const ROLES = ['Drive', 'Pits', 'Ctrls Pit', 'Pit Lead', 'Journalist', 'Strategy', 'Media'];
+const PIT_LEAD_NAMES = ['Audrey Tsai', 'Zachary Rutman'];
 const SCOUT_START_MINUTES = 11 * 60; // Scouting starts at 11:00
 const CANNOT_SCOUT_NAMES = [];
-const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc'];
-const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc'];
+const NO_PITS_NAMES = ['Zachary Rutman', 'Audrey Tsai']; // Can't do Pits (they're Pit Lead)
+const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
-const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
+const ALLOW_PITS_NAMES = ['Miranda', 'Blaze Annison'];
 const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa'];
 
 function seededRandom(seed) {
@@ -61,7 +60,7 @@ function evaluateGoodness(people, submissions) {
     score += totalScoutBlocks * 2;
   }
 
-  const balanceRoles = ['Strategy', 'Media', 'Journalist', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Pits'];
+  const balanceRoles = ['Strategy', 'Media', 'Journalist', 'Pits', 'Ctrls Pit', 'Pit Lead'];
   balanceRoles.forEach((role) => {
     const counts = people
       .map((p) => (p.schedule || []).filter((r) => r === role).length)
@@ -311,18 +310,17 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       }
     }
 
+    const canPits = (p) => {
+      if (NO_PITS_NAMES.includes(p.name)) return false;
+      const sub = submissions.find((s) => s.email === p.email);
+      return sub && (sub.wantsPits && sub.wantsMechPit || sub.wantsSwPit || ALLOW_PITS_NAMES.includes(p.name));
+    };
     const canCtrlsPit = (p) => {
       if (NO_CTRLS_PIT_NAMES.includes(p.name)) return false;
       const sub = submissions.find((s) => s.email === p.email);
       return sub && (sub.wantsPits && sub.wantsCtrlsPit || sub.wantsSwPit);
     };
-    const mechMax = Math.max(0, getMax('Mech Pit', timeIdx));
-    assignUpTo('Mech Pit', mechMax, (_, p) => {
-      if (NO_MECH_PIT_NAMES.includes(p.name)) return false;
-      const sub = submissions.find((s) => s.email === p.email);
-      const canMech = sub && (sub.wantsPits && sub.wantsMechPit || sub.wantsSwPit || ALLOW_MECH_PIT_NAMES.includes(p.name));
-      return canMech;
-    }, true, true);
+    assignUpTo('Pits', Math.max(0, getMax('Pits', timeIdx)), (_, p) => canPits(p), true, true);
 
     assignUpTo('Ctrls Pit', Math.max(0, getMax('Ctrls Pit', timeIdx)), (_, p) => canCtrlsPit(p), true, true);
 
@@ -335,17 +333,6 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       if (person) {
         person.schedule[timeIdx] = 'Pit Lead';
         pitLeadsAssigned++;
-      }
-    }
-
-    const pitsMax = Math.max(0, getMax('Pits', timeIdx));
-    let pitsAssigned = 0;
-    for (const name of PITS_ONLY_NAMES) {
-      if (pitsAssigned >= pitsMax) break;
-      const person = people.find((p) => p.name === name && p.schedule[timeIdx] === 'Open');
-      if (person) {
-        person.schedule[timeIdx] = 'Pits';
-        pitsAssigned++;
       }
     }
 
