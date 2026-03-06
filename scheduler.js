@@ -6,7 +6,7 @@ const PIT_MANAGER_NAME = 'Audrey Tsai';
 const PIT_LEAD_NAME = 'Zachary Rutman';
 const CANNOT_SCOUT_NAMES = [];
 const NO_MECH_PIT_NAMES = ['Zachary Rutman'];
-const NO_CTRLS_PIT_NAMES = ['Sienna Cooper'];
+const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
 const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
 
