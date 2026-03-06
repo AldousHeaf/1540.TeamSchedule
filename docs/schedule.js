@@ -228,7 +228,7 @@ async function loadSchedule() {
         checkThead.innerHTML = '<tr><th class="col-name">Name</th><th>Scouting hours</th><th>Hours in pits</th><th>Status</th></tr>';
         checkTable.appendChild(checkThead);
         const checkTbody = document.createElement('tbody');
-        const pitRoles = ['Pits', 'Ctrls Pit', 'Pit Lead'];
+        const pitRoles = ['Mech Pit', 'Pits', 'Ctrls Pit', 'Pit Lead'];
         day.scoutCheck.forEach((row) => {
           const person = (day.people || []).find((p) => p.name === row.name);
           const pitBlocks = person ? (person.schedule || []).filter((s) => pitRoles.includes(s)).length : 0;
