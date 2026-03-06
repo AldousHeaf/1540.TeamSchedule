@@ -92,7 +92,7 @@ async function loadSchedule() {
       clearTimeout(timeoutId);
     }
     if (!data) {
-      const staticRes = await fetch('schedule.json');
+      const staticRes = await fetch('schedule.json?t=' + Date.now(), { cache: 'no-store' });
       if (staticRes.ok) data = await staticRes.json();
     }
     if (!data) throw new Error('Failed to load');
