@@ -9,6 +9,7 @@ const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai'];
 const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
 const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
+const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa'];
 
 function seededRandom(seed) {
   let s = seed >>> 0;
@@ -480,6 +481,7 @@ async function buildSchedule(config) {
   try {
     const csv = await fs.readFile(csvPath, 'utf8');
     submissions = parseSubmissions(parseCSV(csv), columnMap);
+    submissions = submissions.filter((s) => !EXCLUDED_FROM_SCHEDULE_NAMES.includes(s.name));
   } catch (e) {
     console.warn('no csv', csvPath, e.message);
   }
