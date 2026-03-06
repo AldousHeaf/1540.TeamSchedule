@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "node build-static.js"
+    "build": "node build-static.js",
+    "deploy": "node build-static.js && git add docs/ schedule.csv && git commit -m \"Update schedule from responses\" || true"
   },
   "dependencies": {
     "express": "^4.18.2"
