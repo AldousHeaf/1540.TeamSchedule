@@ -16,6 +16,18 @@ async function loadOrBuild() {
   delete require.cache[require.resolve('./config.js')];
   try { delete require.cache[require.resolve('./requirements.js')]; } catch (_) {}
   const config = require('./config.js');
+  if (config.useCachedSchedule) {
+    try {
+      const raw = await fs.readFile(DATA_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      cachedSchedule = data.schedule || data;
+      return cachedSchedule;
+    } catch (_) {
+      cachedSchedule = await buildSchedule(config);
+      await fs.writeFile(DATA_FILE, JSON.stringify({ schedule: cachedSchedule }, null, 2));
+      return cachedSchedule;
+    }
+  }
   cachedSchedule = await buildSchedule(config);
   await fs.writeFile(DATA_FILE, JSON.stringify({ schedule: cachedSchedule }, null, 2));
   return cachedSchedule;
@@ -28,7 +40,8 @@ app.use(async (req, res, next) => {
 
 app.get('/api/schedule', (req, res) => {
   try {
-    res.json(cachedSchedule);
+    const config = require('./config.js');
+    res.json({ useCachedSchedule: !!config.useCachedSchedule, ...cachedSchedule });
   } catch (e) {
     res.status(500).json({ error: 'Failed to load schedule' });
   }

@@ -1,6 +1,7 @@
 const path = require('path');
 
 module.exports = {
+  useCachedSchedule: true,
   csvPath: path.join(__dirname, 'responses.csv'),
   competitionStartTime: '08:00',
   competitionEndTime: '20:30',

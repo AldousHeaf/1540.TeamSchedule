@@ -93,8 +93,12 @@ function escapeHtml(s) {
 
 async function loadSchedule() {
   const container = document.getElementById('scheduleContainer');
+  const timeoutMs = 20000;
   try {
-    const res = await fetch('/api/schedule');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch('/api/schedule', { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error(res.statusText || 'Failed to load');
     const data = await res.json();
     const days = data.days || (data.schedule && data.schedule.days) || [];
@@ -255,6 +259,10 @@ async function loadSchedule() {
     hideLoadingScreen();
   } catch (e) {
     hideLoadingScreen();
-    container.innerHTML = '<div class="empty">Error loading schedule: ' + escapeHtml(e.message) + '</div>';
+    const isTimeout = e.name === 'AbortError';
+    const msg = isTimeout
+      ? 'Schedule is taking a while. If the server is still building, try refreshing in a moment.'
+      : 'Error loading schedule: ' + escapeHtml(e.message);
+    container.innerHTML = '<div class="empty">' + msg + '</div>';
   }
 }
