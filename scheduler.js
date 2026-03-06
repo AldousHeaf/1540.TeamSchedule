@@ -1,15 +1,14 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Pits', 'Journalist', 'Strategy', 'Media'];
+const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Journalist', 'Strategy', 'Media'];
 const PIT_LEAD_NAMES = ['Audrey Tsai', 'Zachary Rutman'];
-const PITS_ONLY_NAMES = ['Brian Chai', 'James Rubenstein', 'Maddox Gumboc']; // Only in Pits role, not Mech/Ctrls
 const SCOUT_START_MINUTES = 11 * 60; // Scouting starts at 11:00
 const CANNOT_SCOUT_NAMES = [];
-const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc'];
-const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc'];
+const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai'];
+const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
-const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
+const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison', 'James Rubenstein', 'Maddox Gumboc'];
 const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa'];
 
 function seededRandom(seed) {
@@ -61,7 +60,7 @@ function evaluateGoodness(people, submissions) {
     score += totalScoutBlocks * 2;
   }
 
-  const balanceRoles = ['Strategy', 'Media', 'Journalist', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Pits'];
+  const balanceRoles = ['Strategy', 'Media', 'Journalist', 'Mech Pit', 'Ctrls Pit', 'Pit Lead'];
   balanceRoles.forEach((role) => {
     const counts = people
       .map((p) => (p.schedule || []).filter((r) => r === role).length)
@@ -334,20 +333,6 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       if (person) {
         person.schedule[timeIdx] = 'Pit Lead';
         pitLeadsAssigned++;
-      }
-    }
-
-    const pitsMax = Math.max(0, getMax('Pits', timeIdx));
-    let pitsAssigned = 0;
-    // Round-robin so Brian, James, Maddox rotate instead of Brian always first
-    const startIdx = timeIdx % PITS_ONLY_NAMES.length;
-    for (let i = 0; i < PITS_ONLY_NAMES.length && pitsAssigned < pitsMax; i++) {
-      const name = PITS_ONLY_NAMES[(startIdx + i) % PITS_ONLY_NAMES.length];
-      const person = people.find((p) => p.name === name && p.schedule[timeIdx] === 'Open');
-      if (person) {
-        person.schedule[timeIdx] = 'Pits';
-        pitsAssigned++;
-        break; // only 1 Pits per block
       }
     }
 
