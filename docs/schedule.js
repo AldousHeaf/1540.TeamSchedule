@@ -92,7 +92,7 @@ async function loadSchedule() {
       clearTimeout(timeoutId);
     }
     if (!data) {
-      const staticRes = await fetch('schedule.json?t=' + Date.now());
+      const staticRes = await fetch('schedule.json');
       if (staticRes.ok) data = await staticRes.json();
     }
     if (!data) throw new Error('Failed to load');
@@ -105,15 +105,6 @@ async function loadSchedule() {
     if (window.location.hostname.includes('github.io')) {
       const btn = document.getElementById('regenerateBtn');
       if (btn) btn.style.display = 'none';
-    }
-    if (data.builtAt) {
-      const headerInner = document.querySelector('.header-inner');
-      if (headerInner) {
-        const updated = document.createElement('span');
-        updated.className = 'header-updated';
-        updated.textContent = 'Updated ' + new Date(data.builtAt).toLocaleString();
-        headerInner.appendChild(updated);
-      }
     }
     container.innerHTML = '';
     const daysToShow = days.filter((d) => (d.label || '').toLowerCase() !== 'saturday');

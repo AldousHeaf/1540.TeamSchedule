@@ -2,10 +2,10 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Journalist', 'Strategy', 'Media'];
-const PIT_LEAD_NAME = 'Audrey Tsai'; // Pit Lead all day (not Mech Pit)
+const PIT_LEAD_NAMES = ['Audrey Tsai', 'Zachary Rutman']; // Both are Pit Lead only (not Mech Pit)
 const SCOUT_START_MINUTES = 11 * 60; // Scouting starts at 11:00
 const CANNOT_SCOUT_NAMES = [];
-const NO_MECH_PIT_NAMES = ['Zachary Rutman'];
+const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai'];
 const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
 const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
@@ -324,11 +324,16 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
 
     assignUpTo('Ctrls Pit', Math.max(0, getMax('Ctrls Pit', timeIdx)), (_, p) => canCtrlsPit(p), true, true);
 
-    const isPitLead = (p) => p.name === PIT_LEAD_NAME;
+    const isPitLead = (p) => PIT_LEAD_NAMES.includes(p.name);
     const pitLeadMax = Math.max(0, getMax('Pit Lead', timeIdx));
-    const pitLeadPerson = people.find((p) => isPitLead(p) && p.schedule[timeIdx] === 'Open');
-    if (pitLeadPerson && pitLeadMax >= 1) {
-      pitLeadPerson.schedule[timeIdx] = 'Pit Lead';
+    let pitLeadCount = 0;
+    for (const name of PIT_LEAD_NAMES) {
+      if (pitLeadCount >= pitLeadMax) break;
+      const person = people.find((p) => p.name === name && p.schedule[timeIdx] === 'Open');
+      if (person) {
+        person.schedule[timeIdx] = 'Pit Lead';
+        pitLeadCount++;
+      }
     }
 
     const journalistBlocks = [];
