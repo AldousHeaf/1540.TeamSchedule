@@ -339,12 +339,15 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
 
     const pitsMax = Math.max(0, getMax('Pits', timeIdx));
     let pitsAssigned = 0;
-    for (const name of PITS_ONLY_NAMES) {
-      if (pitsAssigned >= pitsMax) break;
+    // Round-robin so Brian, James, Maddox rotate instead of Brian always first
+    const startIdx = timeIdx % PITS_ONLY_NAMES.length;
+    for (let i = 0; i < PITS_ONLY_NAMES.length && pitsAssigned < pitsMax; i++) {
+      const name = PITS_ONLY_NAMES[(startIdx + i) % PITS_ONLY_NAMES.length];
       const person = people.find((p) => p.name === name && p.schedule[timeIdx] === 'Open');
       if (person) {
         person.schedule[timeIdx] = 'Pits';
         pitsAssigned++;
+        break; // only 1 Pits per block
       }
     }
 
