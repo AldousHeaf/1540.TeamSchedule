@@ -2,8 +2,8 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const ROLES = ['Drive', 'Mech Pit', 'Ctrls Pit', 'Pit Lead', 'Journalist', 'Strategy', 'Media'];
-const PIT_MANAGER_NAME = 'Audrey Tsai';
-const PIT_LEAD_NAME = 'Zachary Rutman';
+const PIT_LEAD_NAME = 'Audrey Tsai'; // Pit Lead all day (not Mech Pit)
+const SCOUT_START_MINUTES = 11 * 60; // Scouting starts at 11:00
 const CANNOT_SCOUT_NAMES = [];
 const NO_MECH_PIT_NAMES = ['Zachary Rutman'];
 const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman'];
@@ -309,20 +309,13 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       }
     }
 
-    const isPitManager = (p) => p.name === PIT_MANAGER_NAME;
     const canCtrlsPit = (p) => {
       if (NO_CTRLS_PIT_NAMES.includes(p.name)) return false;
       const sub = submissions.find((s) => s.email === p.email);
       return sub && (sub.wantsPits && sub.wantsCtrlsPit || sub.wantsSwPit);
     };
     const mechMax = Math.max(0, getMax('Mech Pit', timeIdx));
-    let mechSlotsLeft = mechMax;
-    const audrey = people.find((p) => isPitManager(p) && p.schedule[timeIdx] === 'Open');
-    if (audrey && mechMax >= 1) {
-      audrey.schedule[timeIdx] = 'Mech Pit';
-      mechSlotsLeft = mechMax - 1;
-    }
-    assignUpTo('Mech Pit', mechSlotsLeft, (_, p) => {
+    assignUpTo('Mech Pit', mechMax, (_, p) => {
       if (NO_MECH_PIT_NAMES.includes(p.name)) return false;
       const sub = submissions.find((s) => s.email === p.email);
       const canMech = sub && (sub.wantsPits && sub.wantsMechPit || sub.wantsSwPit || ALLOW_MECH_PIT_NAMES.includes(p.name));
@@ -333,9 +326,9 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
 
     const isPitLead = (p) => p.name === PIT_LEAD_NAME;
     const pitLeadMax = Math.max(0, getMax('Pit Lead', timeIdx));
-    const zach = people.find((p) => isPitLead(p) && p.schedule[timeIdx] === 'Open');
-    if (zach && pitLeadMax >= 1) {
-      zach.schedule[timeIdx] = 'Pit Lead';
+    const pitLeadPerson = people.find((p) => isPitLead(p) && p.schedule[timeIdx] === 'Open');
+    if (pitLeadPerson && pitLeadMax >= 1) {
+      pitLeadPerson.schedule[timeIdx] = 'Pit Lead';
     }
 
     const journalistBlocks = [];
@@ -397,6 +390,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
   );
 
   for (let timeIdx = 0; timeIdx < numBlocks; timeIdx++) {
+    if (blockStartMinutes(timeBlocks[timeIdx]) < SCOUT_START_MINUTES) continue; // Scouting starts at 11:00
     const openNow = people.filter((p) => {
       if (p.schedule[timeIdx] !== 'Open') return false;
       const sub = submissions.find((s) => s.email === p.email);
@@ -447,6 +441,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
         const step = MAX_CONSECUTIVE_OPEN + 1;
         for (let k = 1; k < runLen; k += step) {
           const idx = b + k;
+          if (blockStartMinutes(timeBlocks[idx]) < SCOUT_START_MINUTES) continue; // Scouting starts at 11:00
           const scoutCount = people.filter((q) => q.schedule[idx] === 'Scouting!').length;
           if (scoutCount < MAX_SCOUTS) {
             p.schedule[idx] = 'Scouting!';
