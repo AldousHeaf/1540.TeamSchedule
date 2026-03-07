@@ -436,7 +436,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
   const nonLunchAvailable = scoutAvailablePerBlock
     .map((n, t) => {
       if (lunchBlockSet.has(t)) return Infinity;
-      if (lunchEndMin != null && blockStartMinutes(timeBlocks[t]) >= lunchEndMin) return Infinity; // no scouts after lunch
+      if (lunchStartMin != null && blockStartMinutes(timeBlocks[t]) < lunchStartMin) return Infinity; // no scouts before lunch
       return n;
     });
   const consistentScoutTarget = Math.min(
@@ -445,9 +445,8 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
   );
 
   for (let timeIdx = 0; timeIdx < numBlocks; timeIdx++) {
-    if (blockStartMinutes(timeBlocks[timeIdx]) < SCOUT_START_MINUTES) continue;
+    if (lunchStartMin != null && blockStartMinutes(timeBlocks[timeIdx]) < lunchStartMin) continue; // No scouts before lunch
     if (lunchBlockSet.has(timeIdx)) continue; // No scouts during lunch
-    if (lunchEndMin != null && blockStartMinutes(timeBlocks[timeIdx]) >= lunchEndMin) continue; // No scouts after lunch
     const openNow = people.filter((p) => {
       if (p.schedule[timeIdx] !== 'Open') return false;
       const sub = submissions.find((s) => s.email === p.email);
@@ -510,9 +509,8 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
         const step = MAX_CONSECUTIVE_OPEN + 1;
         for (let k = 1; k < runLen; k += step) {
           const idx = b + k;
-          if (blockStartMinutes(timeBlocks[idx]) < SCOUT_START_MINUTES) continue;
+          if (lunchStartMin != null && blockStartMinutes(timeBlocks[idx]) < lunchStartMin) continue; // No scouts before lunch
           if (lunchBlockSet.has(idx)) continue; // No scouts during lunch
-          if (lunchEndMin != null && blockStartMinutes(timeBlocks[idx]) >= lunchEndMin) continue; // No scouts after lunch
           const scoutCount = people.filter((q) => q.schedule[idx] === 'Scouting!').length;
           if (scoutCount < MAX_SCOUTS) {
             p.schedule[idx] = 'Scouting!';
@@ -545,11 +543,10 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
   }
 
   const validScoutBlockIndices = [];
-  for (let t = 2; t < numBlocks; t++) {
+  for (let t = 0; t < numBlocks; t++) {
     if (lunchBlockSet.has(t)) continue;
     const blockStartMin = blockStartMinutes(timeBlocks[t]);
-    if (blockStartMin < SCOUT_START_MINUTES) continue;
-    if (lunchEndMin != null && blockStartMin >= lunchEndMin) continue;
+    if (lunchEndMin == null || blockStartMin < lunchEndMin) continue; // only after lunch
     validScoutBlockIndices.push(t);
   }
   const othersScoutCounts = people
