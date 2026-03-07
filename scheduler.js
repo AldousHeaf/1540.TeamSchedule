@@ -10,7 +10,7 @@ const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai'];
 const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc', 'Blaze Annison'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
 const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
-const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa'];
+const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa', 'Max Blanksby', 'Boone Wilcox', 'hobbsg@catlin.edu'];
 
 function seededRandom(seed) {
   let s = seed >>> 0;
@@ -694,6 +694,15 @@ async function buildSchedule(config) {
       bestDays = days.map(({ _daySubmissions, ...rest }) => rest);
     }
   }
+
+  bestDays.forEach((day) => {
+    (day.people || []).forEach((p) => {
+      if (p.name === 'Aryla Bajaj') p.name = 'Mia Yasukawa';
+    });
+    (day.scoutCheck || []).forEach((c) => {
+      if (c.name === 'Aryla Bajaj') c.name = 'Mia Yasukawa';
+    });
+  });
 
   return { days: bestDays };
 }

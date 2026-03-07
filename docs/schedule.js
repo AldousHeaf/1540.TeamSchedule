@@ -1,4 +1,11 @@
 let scheduleDays = [];
+const HIDE_BEFORE_TIME = '11:30';
+function blockStartTime(block) {
+  return (block || '').split('-')[0].trim();
+}
+function visibleBlockIndices(blocks) {
+  return (blocks || []).map((block, i) => (blockStartTime(block) >= HIDE_BEFORE_TIME ? i : null)).filter((i) => i != null);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   loadSchedule();
@@ -50,9 +57,10 @@ function showRolePanel(day, role) {
   panel.setAttribute('data-role-slug', roleSlug);
   const blocks = day.timeBlocks || [];
   const people = day.people || [];
+  const visibleIdx = visibleBlockIndices(blocks);
   let html = '<p class="role-panel-subtitle">' + escapeHtml(day.label) + ' — who has this role each block</p>';
   html += '<table class="role-panel-table"><thead><tr><th>Time</th><th>People</th></tr></thead><tbody>';
-  blocks.forEach((_, i) => {
+  visibleIdx.forEach((i) => {
     const assigned = people.filter((p) => (p.schedule || [])[i] === role);
     const time = escapeHtml(blocks[i]);
     let peopleCell = '';
@@ -127,10 +135,12 @@ async function loadSchedule() {
       thName.className = 'col-name';
       thName.textContent = 'Name';
       headerRow.appendChild(thName);
-      (day.timeBlocks || []).forEach((block) => {
+      const blocks = day.timeBlocks || [];
+      const visibleIdx = visibleBlockIndices(blocks);
+      visibleIdx.forEach((timeIdx) => {
         const th = document.createElement('th');
         th.className = 'col-time';
-        th.textContent = block;
+        th.textContent = blocks[timeIdx];
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
@@ -144,7 +154,8 @@ async function loadSchedule() {
         tdName.className = 'col-name';
         tdName.textContent = person.name;
         tr.appendChild(tdName);
-        (person.schedule || []).forEach((status, timeIdx) => {
+        visibleIdx.forEach((timeIdx) => {
+          const status = (person.schedule || [])[timeIdx] || 'Open';
           const td = document.createElement('td');
           td.textContent = status;
           td.className = 'cell cell--' + (status || 'open').toLowerCase().replace(/[^a-z]/g, '');
@@ -164,7 +175,6 @@ async function loadSchedule() {
       tableWrap.appendChild(table);
       section.appendChild(tableWrap);
 
-      const blocks = day.timeBlocks || [];
       const countsPerBlock = blocks.map((_, timeIdx) => {
         const counts = {};
         (day.people || []).forEach((p) => {
@@ -182,10 +192,10 @@ async function loadSchedule() {
       summaryThName.className = 'col-name';
       summaryThName.textContent = 'Count by role';
       summaryHeaderRow.appendChild(summaryThName);
-      blocks.forEach((block) => {
+      visibleIdx.forEach((timeIdx) => {
         const th = document.createElement('th');
         th.className = 'col-time';
-        th.textContent = block;
+        th.textContent = blocks[timeIdx];
         summaryHeaderRow.appendChild(th);
       });
       summaryThead.appendChild(summaryHeaderRow);
@@ -201,7 +211,8 @@ async function loadSchedule() {
         tdLabel.style.cursor = 'pointer';
         tdLabel.title = 'Click to see who has ' + role + ' per time';
         tr.appendChild(tdLabel);
-        countsPerBlock.forEach((counts) => {
+        visibleIdx.forEach((timeIdx) => {
+          const counts = countsPerBlock[timeIdx] || {};
           const td = document.createElement('td');
           td.textContent = counts[role] || 0;
           td.className = 'cell cell--' + role.toLowerCase().replace(/[^a-z]/g, '');
