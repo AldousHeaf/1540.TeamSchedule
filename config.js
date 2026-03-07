@@ -3,8 +3,8 @@ const path = require('path');
 module.exports = {
   useCachedSchedule: true,
   csvPath: path.join(__dirname, 'responses.csv'),
-  competitionStartTime: '11:00',
-  competitionEndTime: '20:30',
+  competitionStartTime: '10:00',
+  competitionEndTime: '18:00',
   blockDurationMinutes: 30,
   lunchStart: '13:00',
   lunchEnd: '14:00',
