@@ -155,6 +155,7 @@ body {
 .cell--journalist { background: #e0e7ff; color: #3730a3; }
 .cell--photography { background: #fce7f3; color: #9d174d; }
 .cell--media { background: #d1fae5; color: #065f46; }
+.cell--lunch { background: #f3f4f6; color: #4b5563; }
 .cell--conference { background: #fce7f3; color: #831843; }
 
 .search-input {
@@ -221,6 +222,7 @@ body {
 .role-panel[data-role-slug="media"] .role-panel-inner::before { background: linear-gradient(90deg, #065f46, #10b981); }
 .role-panel[data-role-slug="journalist"] .role-panel-inner::before { background: linear-gradient(90deg, #3730a3, #6366f1); }
 .role-panel[data-role-slug="scouting"] .role-panel-inner::before { background: linear-gradient(90deg, #854d0e, #eab308); }
+.role-panel[data-role-slug="lunch"] .role-panel-inner::before { background: linear-gradient(90deg, #4b5563, #9ca3af); }
 .role-panel-close {
   position: absolute;
   top: 1rem;

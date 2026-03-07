@@ -225,13 +225,21 @@ function loadRequirements(numBlocks) {
   return req;
 }
 
-function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
+function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunchStart, lunchEnd) {
   const numBlocks = timeBlocks.length;
   const people = submissions.map((s) => ({
     name: s.name,
     email: s.email,
     schedule: new Array(numBlocks).fill('Open'),
   }));
+
+  const toMinutes = (hhmm) => {
+    if (!hhmm) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  const lunchStartMin = toMinutes(lunchStart);
+  const lunchEndMin = toMinutes(lunchEnd);
 
   const getMin = (role, i) => {
     const r = req[role];
@@ -250,6 +258,13 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
 
   for (let timeIdx = 0; timeIdx < numBlocks; timeIdx++) {
     const block = timeBlocks[timeIdx];
+    const blockStartMin = blockStartMinutes(block);
+    const isLunchBlock = lunchStartMin != null && lunchEndMin != null &&
+      blockStartMin >= lunchStartMin && blockStartMin + blockDurationMinutes <= lunchEndMin;
+    if (isLunchBlock) {
+      people.forEach((p) => { p.schedule[timeIdx] = 'Lunch'; });
+      continue;
+    }
     const getAvailable = () =>
       people.filter((p) => {
         if (p.schedule[timeIdx] !== 'Open') return false;
@@ -491,8 +506,8 @@ async function buildSchedule(config) {
     competitionStartTime,
     competitionEndTime,
     blockMins,
-    config.lunchStart,
-    config.lunchEnd
+    null,
+    null
   );
   const numBlocks = blocksPerDay.length;
   const req = loadRequirements(numBlocks);
@@ -542,7 +557,7 @@ async function buildSchedule(config) {
         daySubmissions = shuffleWithSeed(daySubmissions, iter * 1000 + d);
       }
       const timeBlocks = blocksPerDay.slice();
-      const people = runScheduling(daySubmissions, timeBlocks, req, blockMins);
+      const people = runScheduling(daySubmissions, timeBlocks, req, blockMins, config.lunchStart, config.lunchEnd);
       const scoutCheck = people.map((p) => {
         const sub = daySubmissions.find((s) => s.email === p.email);
         const shouldScout = !sub || !sub.cannotScout;
