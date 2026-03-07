@@ -4,7 +4,7 @@ module.exports = {
   useCachedSchedule: true,
   csvPath: path.join(__dirname, 'responses.csv'),
   competitionStartTime: '09:00',
-  competitionEndTime: '18:00',
+  competitionEndTime: '16:30',
   blockDurationMinutes: 30,
   lunchStart: '13:00',
   lunchEnd: '14:00',

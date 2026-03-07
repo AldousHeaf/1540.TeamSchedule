@@ -10,7 +10,7 @@ const NO_MECH_PIT_NAMES = ['Zachary Rutman', 'Audrey Tsai'];
 const NO_CTRLS_PIT_NAMES = ['Sienna Cooper', 'Zachary Rutman', 'Brian Chai', 'James Rubenstein', 'Maddox Gumboc', 'Blaze Annison'];
 const NO_STRATEGY_NAMES = ['Brian Chai', 'Miranda'];
 const ALLOW_MECH_PIT_NAMES = ['Miranda', 'Blaze Annison'];
-const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa', 'Max Blanksby', 'Boone Wilcox', 'hobbsg@catlin.edu'];
+const EXCLUDED_FROM_SCHEDULE_NAMES = ['Mia Yasukawa', 'Max Blanksby', 'Boone Wilcox', 'hobbsg@catlin.edu', 'Sophia Saliba'];
 
 function seededRandom(seed) {
   let s = seed >>> 0;
