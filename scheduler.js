@@ -535,6 +535,65 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
     }
   });
 
+  const validScoutBlockIndices = [];
+  for (let t = 2; t < numBlocks; t++) {
+    if (lunchBlockSet.has(t)) continue;
+    const blockStartMin = blockStartMinutes(timeBlocks[t]);
+    if (blockStartMin < SCOUT_START_MINUTES) continue;
+    if (lunchEndMin != null && blockStartMin >= lunchEndMin) continue;
+    validScoutBlockIndices.push(t);
+  }
+  const othersScoutCounts = people
+    .filter((p) => !PIT_PAIR_NAMES.includes(p.name))
+    .map((p) => (p.schedule || []).filter((s) => s === 'Scouting!').length);
+  const totalOthersScout = othersScoutCounts.reduce((a, b) => a + b, 0);
+  const numOthersWithScout = othersScoutCounts.filter((c) => c > 0).length;
+  const averageScoutBlocks = numOthersWithScout > 0 ? totalOthersScout / numOthersWithScout : 0;
+  const targetPairScout = Math.max(0, Math.min(validScoutBlockIndices.length, Math.round(averageScoutBlocks)));
+
+  const joseph = people.find((q) => q.name === 'Joseph Cole');
+  const aldous = people.find((q) => q.name === 'Aldous Heaf');
+  if (joseph && aldous && joseph.schedule && aldous.schedule) {
+    const pairScoutBlocks = validScoutBlockIndices.filter((t) => joseph.schedule[t] === 'Scouting!');
+    const currentCount = pairScoutBlocks.length;
+    if (currentCount > targetPairScout) {
+      const toRemove = currentCount - targetPairScout;
+      const blocksToClear = pairScoutBlocks.slice(-toRemove);
+      blocksToClear.forEach((t) => {
+        joseph.schedule[t] = 'Open';
+        aldous.schedule[t] = 'Open';
+        const openEligible = people.filter((p) => {
+          if (PIT_PAIR_NAMES.includes(p.name)) return false;
+          if (p.schedule[t] !== 'Open') return false;
+          const sub = submissions.find((s) => s.email === p.email);
+          if (sub && sub.driveTeam) return false;
+          return eligibleForScout(p);
+        });
+        let added = 0;
+        openEligible.forEach((p) => {
+          if (added >= 2) return;
+          p.schedule[t] = 'Scouting!';
+          added++;
+        });
+      });
+    } else if (currentCount < targetPairScout) {
+      const toAdd = targetPairScout - currentCount;
+      const candidateBlocks = validScoutBlockIndices.filter((t) => joseph.schedule[t] === 'Open');
+      let added = 0;
+      candidateBlocks.forEach((t) => {
+        if (added >= toAdd) return;
+        const scoutsHere = people.filter((q) => q.schedule[t] === 'Scouting!');
+        if (scoutsHere.length < 8) return;
+        const twoToRemove = scoutsHere.slice(0, 2).filter((q) => !PIT_PAIR_NAMES.includes(q.name));
+        if (twoToRemove.length < 2) return;
+        twoToRemove.forEach((q) => { q.schedule[t] = 'Open'; });
+        joseph.schedule[t] = 'Scouting!';
+        aldous.schedule[t] = 'Scouting!';
+        added++;
+      });
+    }
+  }
+
   return people;
 }
 
