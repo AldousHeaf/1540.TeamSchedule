@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) await loadSchedule();
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Regenerate';
+      btn.textContent = 'Régénérer';
     }
   });
   const searchInput = document.getElementById('searchInput');
@@ -58,8 +58,8 @@ function showRolePanel(day, role) {
   const blocks = day.timeBlocks || [];
   const people = day.people || [];
   const visibleIdx = visibleBlockIndices(blocks);
-  let html = '<p class="role-panel-subtitle">' + escapeHtml(day.label) + ' — who has this role each block</p>';
-  html += '<table class="role-panel-table"><thead><tr><th>Time</th><th>People</th></tr></thead><tbody>';
+  let html = '<p class="role-panel-subtitle">' + escapeHtml(day.label) + ' — qui a ce rôle à chaque créneau</p>';
+  html += '<table class="role-panel-table"><thead><tr><th>Heure</th><th>Personnes</th></tr></thead><tbody>';
   visibleIdx.forEach((i) => {
     const assigned = people.filter((p) => (p.schedule || [])[i] === role);
     const time = escapeHtml(blocks[i]);
@@ -106,7 +106,7 @@ async function loadSchedule() {
     if (!data) throw new Error('Failed to load');
     const days = data.days || (data.schedule && data.schedule.days) || [];
     if (!days.length) {
-      container.innerHTML = '<div class="empty">No schedule. Check CSV path in config and regenerate.</div>';
+      container.innerHTML = '<div class="empty">Aucun horaire. Vérifiez le chemin CSV dans la config et régénérez.</div>';
       return;
     }
     scheduleDays = days;
@@ -133,7 +133,7 @@ async function loadSchedule() {
       const headerRow = document.createElement('tr');
       const thName = document.createElement('th');
       thName.className = 'col-name';
-      thName.textContent = 'Name';
+      thName.textContent = 'Nom';
       headerRow.appendChild(thName);
       const blocks = day.timeBlocks || [];
       const visibleIdx = visibleBlockIndices(blocks);
@@ -163,7 +163,7 @@ async function loadSchedule() {
             td.setAttribute('data-role', status);
             td.setAttribute('data-day-index', String(realDayIndex));
             td.style.cursor = 'pointer';
-            td.title = 'Click to see who has ' + status + ' per time';
+            td.title = 'Cliquez pour voir qui a ' + status + ' à chaque créneau';
           }
           tr.appendChild(td);
         });
@@ -190,7 +190,7 @@ async function loadSchedule() {
       const summaryHeaderRow = document.createElement('tr');
       const summaryThName = document.createElement('th');
       summaryThName.className = 'col-name';
-      summaryThName.textContent = 'Count by role';
+      summaryThName.textContent = 'Effectif par rôle';
       summaryHeaderRow.appendChild(summaryThName);
       visibleIdx.forEach((timeIdx) => {
         const th = document.createElement('th');
@@ -209,7 +209,7 @@ async function loadSchedule() {
         tdLabel.setAttribute('data-role', role);
         tdLabel.setAttribute('data-day-index', String(realDayIndex));
         tdLabel.style.cursor = 'pointer';
-        tdLabel.title = 'Click to see who has ' + role + ' per time';
+        tdLabel.title = 'Cliquez pour voir qui a ' + role + ' à chaque créneau';
         tr.appendChild(tdLabel);
         visibleIdx.forEach((timeIdx) => {
           const counts = countsPerBlock[timeIdx] || {};
@@ -223,7 +223,7 @@ async function loadSchedule() {
       summaryTable.appendChild(summaryTbody);
       const summaryTitle = document.createElement('h3');
       summaryTitle.className = 'summary-title';
-      summaryTitle.textContent = 'Count per half-hour';
+      summaryTitle.textContent = 'Effectif par demi-heure';
       section.appendChild(summaryTitle);
       const summaryWrap = document.createElement('div');
       summaryWrap.className = 'table-scroll';
@@ -233,12 +233,12 @@ async function loadSchedule() {
       if (day.scoutCheck && day.scoutCheck.length > 0) {
         const checkTitle = document.createElement('h3');
         checkTitle.className = 'summary-title';
-        checkTitle.textContent = 'Scouting check';
+        checkTitle.textContent = 'Vérif. scout';
         section.appendChild(checkTitle);
         const checkTable = document.createElement('table');
         checkTable.className = 'schedule-table summary-table scout-check-table';
         const checkThead = document.createElement('thead');
-        checkThead.innerHTML = '<tr><th class="col-name">Name</th><th>Scouting hours</th><th>Hours in pits</th><th>Status</th></tr>';
+        checkThead.innerHTML = '<tr><th class="col-name">Nom</th><th>Heures de scout</th><th>Heures en pits</th><th>Statut</th></tr>';
         checkTable.appendChild(checkThead);
         const checkTbody = document.createElement('tbody');
         const pitRoles = ['Pits', 'Pit Lead', 'Mech Pit'];
@@ -254,7 +254,7 @@ async function loadSchedule() {
             '</td><td>' +
             (row.scoutingBlocks * hoursPerBlock).toFixed(1) + ' hr</td><td>' +
             hoursInPits + ' hr</td><td>' +
-            escapeHtml(row.status === 'exempt' ? 'Exempt' : row.status === 'none' ? 'No scouting' : row.status === 'low' ? 'Low' : 'OK') +
+            escapeHtml(row.status === 'exempt' ? 'Dispensé' : row.status === 'none' ? 'Pas de scout' : row.status === 'low' ? 'Faible' : 'OK') +
             '</td>';
           checkTbody.appendChild(tr);
         });
@@ -270,8 +270,8 @@ async function loadSchedule() {
   } catch (e) {
     const isTimeout = e.name === 'AbortError';
     const msg = isTimeout
-      ? 'Schedule is taking a while. If the server is still building, try refreshing in a moment.'
-      : 'Error loading schedule: ' + escapeHtml(e.message);
+      ? "L'horaire met du temps à charger. Si le serveur est encore en train de construire, réessayez dans un instant."
+      : 'Erreur lors du chargement de l\'horaire : ' + escapeHtml(e.message);
     container.innerHTML = '<div class="empty">' + msg + '</div>';
   }
 }
