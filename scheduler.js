@@ -434,7 +434,11 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
     scoutAvailablePerBlock.push(openNow.filter(eligibleForScout).length);
   }
   const nonLunchAvailable = scoutAvailablePerBlock
-    .map((n, t) => lunchBlockSet.has(t) ? Infinity : n);
+    .map((n, t) => {
+      if (lunchBlockSet.has(t)) return Infinity;
+      if (lunchEndMin != null && blockStartMinutes(timeBlocks[t]) >= lunchEndMin) return Infinity; // no scouts after lunch
+      return n;
+    });
   const consistentScoutTarget = Math.min(
     MAX_SCOUTS,
     Math.max(MIN_SCOUTS, Math.min(...nonLunchAvailable))
@@ -443,6 +447,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
   for (let timeIdx = 0; timeIdx < numBlocks; timeIdx++) {
     if (blockStartMinutes(timeBlocks[timeIdx]) < SCOUT_START_MINUTES) continue;
     if (lunchBlockSet.has(timeIdx)) continue; // No scouts during lunch
+    if (lunchEndMin != null && blockStartMinutes(timeBlocks[timeIdx]) >= lunchEndMin) continue; // No scouts after lunch
     const openNow = people.filter((p) => {
       if (p.schedule[timeIdx] !== 'Open') return false;
       const sub = submissions.find((s) => s.email === p.email);
@@ -507,6 +512,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
           const idx = b + k;
           if (blockStartMinutes(timeBlocks[idx]) < SCOUT_START_MINUTES) continue;
           if (lunchBlockSet.has(idx)) continue; // No scouts during lunch
+          if (lunchEndMin != null && blockStartMinutes(timeBlocks[idx]) >= lunchEndMin) continue; // No scouts after lunch
           const scoutCount = people.filter((q) => q.schedule[idx] === 'Scouting!').length;
           if (scoutCount < MAX_SCOUTS) {
             p.schedule[idx] = 'Scouting!';
@@ -518,6 +524,14 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
         }
       }
       b = runEnd;
+    }
+  });
+
+  PIT_PAIR_NAMES.forEach((name) => {
+    const p = people.find((q) => q.name === name);
+    if (p && p.schedule) {
+      p.schedule[0] = 'Open';
+      p.schedule[1] = 'Open';
     }
   });
 
