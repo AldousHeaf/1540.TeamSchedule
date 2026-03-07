@@ -109,7 +109,7 @@ async function loadSchedule() {
       if (btn) btn.style.display = 'none';
     }
     container.innerHTML = '';
-    const daysToShow = days.filter((d) => (d.label || '').toLowerCase() !== 'saturday');
+    const daysToShow = days.filter((d) => (d.label || '').toLowerCase() !== 'friday');
     daysToShow.forEach((day, dayIndex) => {
       const realDayIndex = days.indexOf(day);
       const section = document.createElement('section');
