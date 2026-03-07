@@ -94,18 +94,24 @@ function parseCSV(text) {
   });
 }
 
-function generateTimeBlocks(startTime, endTime, blockMinutes) {
+function generateTimeBlocks(startTime, endTime, blockMinutes, excludeStart, excludeEnd) {
   const [sH, sM] = startTime.split(':').map(Number);
   const [eH, eM] = endTime.split(':').map(Number);
   let m = sH * 60 + sM;
   const end = eH * 60 + eM;
+  const exclStart = excludeStart ? (() => { const [h, min] = excludeStart.split(':').map(Number); return h * 60 + min; })() : null;
+  const exclEnd = excludeEnd ? (() => { const [h, min] = excludeEnd.split(':').map(Number); return h * 60 + min; })() : null;
   const blocks = [];
   while (m < end) {
-    const h = Math.floor(m / 60);
-    const min = m % 60;
-    const h2 = Math.floor((m + blockMinutes) / 60);
-    const min2 = (m + blockMinutes) % 60;
-    blocks.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}-${String(h2).padStart(2, '0')}:${String(min2).padStart(2, '0')}`);
+    const blockEnd = m + blockMinutes;
+    const inExclude = exclStart != null && exclEnd != null && m >= exclStart && blockEnd <= exclEnd;
+    if (!inExclude) {
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      const h2 = Math.floor(blockEnd / 60);
+      const min2 = blockEnd % 60;
+      blocks.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}-${String(h2).padStart(2, '0')}:${String(min2).padStart(2, '0')}`);
+    }
     m += blockMinutes;
   }
   return blocks;
@@ -484,7 +490,13 @@ async function buildSchedule(config) {
   const blockMins = Number(blockDurationMinutes) || 30;
   const scheduleDay = config.scheduleDay || (config.numberOfDays === 1 ? 'saturday' : null);
   const daysCount = scheduleDay === 'saturday' ? 1 : Math.max(1, Number(numberOfDays) || 1);
-  const blocksPerDay = generateTimeBlocks(competitionStartTime, competitionEndTime, blockMins);
+  const blocksPerDay = generateTimeBlocks(
+    competitionStartTime,
+    competitionEndTime,
+    blockMins,
+    config.lunchStart,
+    config.lunchEnd
+  );
   const numBlocks = blocksPerDay.length;
   const req = loadRequirements(numBlocks);
 
