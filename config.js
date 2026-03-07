@@ -6,7 +6,8 @@ module.exports = {
   competitionStartTime: '11:00',
   competitionEndTime: '20:30',
   blockDurationMinutes: 30,
-  numberOfDays: 2,
+  numberOfDays: 1,
+  scheduleDay: 'saturday',
   optimizationIterations: 1,
   columnMap: {
     email: 'Email Address',

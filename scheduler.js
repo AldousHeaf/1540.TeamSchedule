@@ -272,7 +272,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       if (timeIdx <= 0 || p.schedule[timeIdx - 1] !== r) return false;
       return runLengthAtPrev(p, r) < 2;
     };
-    const assignUpTo = (role, maxN, preferOrOnlyIf, spread = true, onlyIf = false) => {
+    const assignUpTo = (role, maxN, preferOrOnlyIf, spread = true, onlyIf = false, pairFirst = null) => {
       let n = 0;
       let available = getAvailable();
       if (preferOrOnlyIf) {
@@ -282,6 +282,16 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
         } else {
           const rest = available.filter((p) => !matching.includes(p));
           available = [...matching, ...rest];
+        }
+      }
+      if (pairFirst && pairFirst.length >= 2) {
+        const [a, b] = pairFirst;
+        const ia = available.findIndex((p) => p.name === a);
+        const ib = available.findIndex((p) => p.name === b);
+        if (ia >= 0 && ib >= 0) {
+          const pa = available[ia];
+          const pb = available[ib];
+          available = [pa, pb, ...available.filter((p, i) => i !== ia && i !== ib)];
         }
       }
       if (spread) {
@@ -321,7 +331,7 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes) {
       const sub = submissions.find((s) => s.email === p.email);
       const canMech = sub && (sub.wantsPits && sub.wantsMechPit || sub.wantsSwPit || ALLOW_MECH_PIT_NAMES.includes(p.name));
       return canMech;
-    }, true, true);
+    }, true, true, ['Joseph Cole', 'Aldous Heaf']);
 
     assignUpTo('Ctrls Pit', Math.max(0, getMax('Ctrls Pit', timeIdx)), (_, p) => canCtrlsPit(p), true, true);
 
@@ -472,7 +482,8 @@ async function buildSchedule(config) {
     optimizationIterations = 1,
   } = config;
   const blockMins = Number(blockDurationMinutes) || 30;
-  const daysCount = Math.max(1, Number(numberOfDays) || 1);
+  const scheduleDay = config.scheduleDay || (config.numberOfDays === 1 ? 'saturday' : null);
+  const daysCount = scheduleDay === 'saturday' ? 1 : Math.max(1, Number(numberOfDays) || 1);
   const blocksPerDay = generateTimeBlocks(competitionStartTime, competitionEndTime, blockMins);
   const numBlocks = blocksPerDay.length;
   const req = loadRequirements(numBlocks);
@@ -482,15 +493,32 @@ async function buildSchedule(config) {
     const csv = await fs.readFile(csvPath, 'utf8');
     submissions = parseSubmissions(parseCSV(csv), columnMap);
     submissions = submissions.filter((s) => !EXCLUDED_FROM_SCHEDULE_NAMES.includes(s.name));
+    submissions.push({
+      name: 'Aldous Heaf',
+      email: 'aldous heaf',
+      saturday: true,
+      friday: false,
+      wantsPits: true,
+      wantsMechPit: true,
+      wantsCtrlsPit: false,
+      wantsSwPit: false,
+      wantsJournalism: false,
+      wantsStrategy: false,
+      wantsMedia: false,
+      driveTeam: false,
+      cannotScout: false,
+      unavailableTimes: '',
+      conventionTalks: '',
+    });
   } catch (e) {
     console.warn('no csv', csvPath, e.message);
   }
 
-  const dayFilters = [
-    (s) => s.friday === true,
-    (s) => s.saturday === true,
-  ];
-  const dayLabels = ['Friday', 'Saturday'];
+  const dayFilters =
+    scheduleDay === 'saturday'
+      ? [(s) => s.saturday === true]
+      : [(s) => s.friday === true, (s) => s.saturday === true];
+  const dayLabels = scheduleDay === 'saturday' ? ['Saturday'] : ['Friday', 'Saturday'];
 
   const iterations = Math.max(1, Number(optimizationIterations) || 1);
   let bestDays = null;
