@@ -535,6 +535,15 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
     }
   });
 
+  const joseph = people.find((q) => q.name === 'Joseph Cole');
+  const aldous = people.find((q) => q.name === 'Aldous Heaf');
+  if (joseph && aldous && joseph.schedule && aldous.schedule) {
+    for (let t = 0; t < numBlocks; t++) {
+      if (joseph.schedule[t] === 'Pits') aldous.schedule[t] = 'Pits';
+      if (aldous.schedule[t] === 'Pits') joseph.schedule[t] = 'Pits';
+    }
+  }
+
   const validScoutBlockIndices = [];
   for (let t = 2; t < numBlocks; t++) {
     if (lunchBlockSet.has(t)) continue;
@@ -551,8 +560,6 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
   const averageScoutBlocks = numOthersWithScout > 0 ? totalOthersScout / numOthersWithScout : 0;
   const targetPairScout = Math.max(0, Math.min(validScoutBlockIndices.length, Math.round(averageScoutBlocks)));
 
-  const joseph = people.find((q) => q.name === 'Joseph Cole');
-  const aldous = people.find((q) => q.name === 'Aldous Heaf');
   if (joseph && aldous && joseph.schedule && aldous.schedule) {
     const pairScoutBlocks = validScoutBlockIndices.filter((t) => joseph.schedule[t] === 'Scouting!');
     const currentCount = pairScoutBlocks.length;
@@ -592,6 +599,13 @@ function runScheduling(submissions, timeBlocks, req, blockDurationMinutes, lunch
         added++;
       });
     }
+  }
+
+  const aldousFinal = people.find((q) => q.name === 'Aldous Heaf');
+  if (aldousFinal && aldousFinal.schedule) {
+    aldousFinal.schedule.forEach((slot, t) => {
+      if (slot === 'Open') aldousFinal.schedule[t] = 'Operations';
+    });
   }
 
   return people;
@@ -705,9 +719,7 @@ async function buildSchedule(config) {
   }
 
   bestDays.forEach((day) => {
-    const numBlocks = (day.timeBlocks || []).length;
     (day.people || []).forEach((p) => {
-      if (p.name === 'Aldous Heaf') p.schedule = new Array(numBlocks).fill('Open');
       if (p.name === 'Aryla Bajaj') p.name = 'Mia Yasukawa';
       p.name = displayName(p.name);
     });

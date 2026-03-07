@@ -156,6 +156,7 @@ body {
 .cell--photography { background: #fce7f3; color: #9d174d; }
 .cell--media { background: #d1fae5; color: #065f46; }
 .cell--lunch { background: #f3f4f6; color: #4b5563; }
+.cell--operations { background: #e0f2fe; color: #0369a1; }
 .cell--conference { background: #fce7f3; color: #831843; }
 
 .search-input {
